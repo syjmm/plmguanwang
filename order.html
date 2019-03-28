@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+	</head>
+	<body>
+		<div class="submitorder_carpay p">
+    <div class="w1224">
+        <button type="submit" id="submit_order" class="checkout-submit" onclick="submit_order();">
+            提交订单
+        </button>
+    </div>
+</div>
+	</body>
+	<script>
+		function submit_order() {
+        $('#submit_order').attr('disabled','disabled');
+        $('.user_note_txt').each(function () {
+            $("input[name='user_note']").attr('value', $(this).val());
+        })
+        var invoice_desc = $("#invoice_desc").val();
+        $.ajax({
+            type: "POST",
+            url: "/index.php/Home/Cart/cart3.html", //+tab,
+            data: $('#cart2_form').serialize() + "&act=submit_order&invoice_desc="+invoice_desc, //
+            dataType: "json",
+            success: function (data) {
+                // 当前人数过多 排队中
+                if (data.status == -99) {
+                    $('.mask-filter-div').show();
+                    $('.rabbit').show();
+                    setTimeout("submit_order()", 5000);
+                    return false;
+                } else {
+                    // 隐藏排队
+                    $('.mask-filter-div').hide();
+                    $('.rabbit').hide();
+                }
+
+                if (data.status != 1) {
+                    $('#submit_order').attr('disabled',false);
+                    layer.msg(data.msg, {
+                        icon: 2,
+                        time: 1000 //2秒关闭（如果不配置，默认是3秒）
+                    });
+                    // 登录超时
+                    if (data.status == -100) {
+                        location.href = "/index.php/Home/User/login.html";
+                    }
+                    return false;
+                }
+                layer.msg('订单提交成功!', {
+                    icon: 1, // 成功图标
+                    time: 2000 //2秒关闭（如果不配置，默认是3秒）
+                }, function () { // 关闭后执行的函数
+                    location.href = "/index.php?m=Home&c=Cart&a=cart4&order_sn=" + data.result; // 跳转到结算页
+                });
+            }
+        });
+    }
+    //设置商品有货无货
+	</script>
+</html>
